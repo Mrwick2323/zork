@@ -87,7 +87,9 @@ def getstats(player):
     print('---------------------')
     print('Gold: '+str(player['money']))
     print("Health: "+str(player["health"]))
-    print("Effects: "+(''.join(player["effects"] if len(player["effects"])>0 else "none")))
+    print("Max Health: "+str(player["maxhealth"]))
+    print("Strength: "+str(player["strength"]))
+    print("Resilience: "+str(player["resilience"]))
     print("Accuracy: "+str(player["accuracy"]))
     print("Speed: "+str(player['speed']))
     print("Weapon: ")
@@ -354,7 +356,7 @@ def dungeonsys():
                 killmap.append([killmap[-1][0]+1,0])
                 rflag=True
             flag=False
-def run():
+def run(deathtext):
     dungeon = getmaze(5)
     cpt = {
     'a': '''
@@ -580,9 +582,10 @@ def run():
     "name": f"{random.choice(first)} {random.choice(last)}",
     "speed":5,
     "health":10,
+    "strength":0,
+    "resilience":0,
     "maxhealth":10,
     "backpack" : ['','','','','','','','','',''],
-    "effects":[],
     "accuracy":80,
     "money":money,
     "diddungeon":False,
@@ -686,7 +689,7 @@ def run():
         "misc": ['figure'],
         "shop":{
             'common sword':{
-                "cost":100
+                "cost":10
             },
             'speed potion':{
                 'cost':5
@@ -702,6 +705,23 @@ def run():
             },
             'money potion':{
                 'cost':5
+            },
+            'resilience potion':{
+                'cost':8
+            }
+        },
+        'consumables':{
+            'speed potion':{
+                'stat':'speed',
+                'amount':2
+            },
+            'strength potion':{
+                'stat':'strength',
+                'amount':3
+            },
+            'resilience potion':{
+                'stat':'resilience',
+                'amount':5
             }
         },
         "armor":{
@@ -770,7 +790,7 @@ def run():
         "items": [],
         'gold':0,
         #ex: ("common sword", 5)
-        "objects": ["common sword","speed potion","death potion (safe)","strength potion","leather armor","money potion"],
+        "objects": ["common sword","speed potion","death potion (safe)","strength potion","leather armor","money potion","resilience potion"],
         "requirements": "True if (getct(starttime)[:3] in ['08','09','10','11'] and 'A.M.' in getct(starttime)) or (getct(starttime)[:3] in ['12','01','02','03','04','05']) else False",
         "entities": ["shopkeeper"]
         },
@@ -912,6 +932,14 @@ def run():
         print("\n")
 
         h = True
+        if deathtext!='none':
+            print('''
+                ###################################################### 
+                ##                    YOU DIED                      ##
+                ###################################################### 
+            ''')
+            print(deathtext)
+            print('\n----------------------------------------------------------------------\n')
         cmds()
         print()
         input("press enter to start  ")
@@ -937,9 +965,9 @@ def run():
                 else:
                     print('only usable in the shop!')
             elif 'buy ' in act:
-                if location=='shop' or location=='night shop':
+                if location=='shop':
                     act=act.split(' ')
-                    if (item:=' '.join(act[act.index('buy')+1:])) in map[location]['objects']:
+                    if (item:=' '.join(act[act.index('buy')+1:])) in items['shop']:
                         if player['money']>=items['shop'][item]['cost']:
                             if '' in player['backpack']:
                                 player['money']-=items['shop'][item]['cost']
@@ -955,23 +983,42 @@ def run():
                                 print('brokie')
                     else:
                         print("That item isn't for sale.")
+                else:
+                    print('You can only use this at the shop')
             elif 'equip' in act:
                 act=act.split(' ')
                 item=' '.join(act[act.index('equip')+1:])
                 if item in items['weapons']:
                     player['weapon']['name']=item
-                    player['weapon']['damage']=items['weapons'][item]['damage']
+                    player['weapon']['damage']=items['weapons'][item]['damage']+player['strength']
                     player['backpack'].remove(item)
                     player['backpack'].append('')
                     print(f'You have successfully equipped the {item}')
                 if item in items['armor']:
                     player['armor']['name']=item
                     player['armor']['def']=items['armor'][item]['defense']
-                    player['health']=10+player['armor']['def']
+                    player['health']=10+player['armor']['def']+player['resilience']
                     player['maxhealth']=10+player['armor']['def']
                     player['backpack'].remove(item)
                     player['backpack'].append('')
                     print(f'You have successfully equipped the {item}')
+            elif 'drink' in act:
+                act=act.split(' ')
+                item=' '.join(act[act.index('drink')+1:])
+                if item in player['backpack']:
+                    if item=='money potion':
+                        icby=random.randint(0,10)
+                        player['money']+=icby
+                        print(f"You gained {icby} gold!")
+                    elif item=='death potion':
+                        run('You died! maybe dont drink a death potion next time.')
+                    else:
+                        player[items["consumables"][item]['stat']]+=items['consumables'][item]['amount']
+                        if 'strength' in item:
+                            player['weapon']['damage']+=items['consumables'][item]['amount']
+                        if 'resilience' in item:
+                            player['armor']['def']+=items['consumables'][item]['amount']
+                            player['health']+=items['consumables'][item]['amount']
             elif ('grab' in act or 'take' in act or 'pick up' in act):
                 if 'grab' in act:
                     w='grab'
@@ -1047,4 +1094,4 @@ def run():
             h = False
         run()
     zork()
-run()
+run('none')
