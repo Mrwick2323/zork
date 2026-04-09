@@ -2,6 +2,7 @@ import random
 import math
 import time
 import builtins
+import cpt
 def getmaze(d):
     def makegrid(d):
         row = ['⬜']+(['⬛','⬜']*(d-1))
@@ -78,6 +79,7 @@ def cmds():
     print(' collect                - collects gold at an area')
     print(' buy                    - purchases a specified item')
     print(' equip                  - equips the specified item')
+    print(' talk                   - used exclusively to talk to the shopkeeper')
     print(' Tip: sometimes if an enemys speed stat is higher than yours it will attack first')
 
 def view(map, location):
@@ -86,6 +88,7 @@ def getstats(player):
     print("Name: "+player["name"])
     print('---------------------')
     print('Gold: '+str(player['money']))
+    print('Keys: '+ (', '.join(player['keays']) if len(player['keys'])>0 else 'none'))
     print("Health: "+str(player["health"]))
     print("Max Health: "+str(player["maxhealth"]))
     print("Strength: "+str(player["strength"]))
@@ -265,6 +268,15 @@ def dungeonsys():
     while True:
         if rflag:
             dungeon=getmaze(dim)
+            plaintext=random.choice(words)
+            word=None
+            for i in plaintext:
+                if word is None:
+                    word=cpt.to_2d_rect(cpt[i])
+                else:
+                    letterrect=cpt.to_2d_rect(cpt[i])
+                    for j in range(7):
+                        word[j]+=letterrect[j]         
             dungeon[dim-1][dim-1]='🟧'
             enemyct=list(range(random.choice([1,2,2,3,3,3,4,4,4,4,5,5,5,5,5,6,6,6,6,6,6,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,15,15,15,15,15,15,16,16,16,16,16,17,17,17,17,18,18,18,19,19,20])))
             for i in enemyct:
@@ -580,6 +592,7 @@ def run(deathtext):
 
     player = {
     "name": f"{random.choice(first)} {random.choice(last)}",
+    "keys":[],
     "speed":5,
     "health":10,
     "strength":0,
@@ -1019,6 +1032,11 @@ def run(deathtext):
                         if 'resilience' in item:
                             player['armor']['def']+=items['consumables'][item]['amount']
                             player['health']+=items['consumables'][item]['amount']
+            elif 'talk' in act:
+                if location=='shop':
+                    print("You: Hello!")
+                    print("Shopkeeper: If you wish to take my key, first you must solve my riddles three.")
+                    print("The shopkeeper hands you a note. It appears to be some poorly drawn mountains:")
             elif ('grab' in act or 'take' in act or 'pick up' in act):
                 if 'grab' in act:
                     w='grab'
@@ -1034,8 +1052,17 @@ def run(deathtext):
                     print(act[tindex+1:], end=' ')
                     print('is not here!')
             elif 'drop' in act:
-                if act.split('drop ')[-1] in player['backpack']:
-                    map[location]['items'].append(player['backpack'].pop(player['backpack'].index(act.split('drop ')[-1])))
+                act=act.split(' ')
+                item=act[act.index('drop')+1:]
+                if item in player['backpack']:
+                    if item!='figure':
+                        map[location]['items'].append(item)
+                        player['backpack'].remove(item)
+                        player['backpack'].append('')
+                    else:
+                        print('You drop the figure, and it shatters immediately upon hitting the ground, revealing a very old key.')
+                        print('You pick up the key.')
+                        player['keys'].append('dungeon')
                 else:
                     print('you dont have that item')
             elif 'fight' in act or 'attack' in act:
