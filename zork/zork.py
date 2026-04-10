@@ -1146,10 +1146,30 @@ def run(deathtext):
                         print('How about this one?')
                         guess=input('You: ')
                         if plaintext in guess:
-                            player['stage']+=1
+                            print('Shopkeeper: Correct!')
+                            print("Shopkeeper: Take my key.")
+                            player['keys'].append('shop')
+                        else:
+                            print("Shopkeeper: Wrong! Try again!")
+                    if player['stage']==5:
+                        oprintgrid(word)
+                        print("Shopkeeper: Have you come to an answer?")
+                        guess=input('You: ')
+                        if plaintext in guess.lower():
+                            print('Shopkeeper: Correct!')
+                            print("Shopkeeper: Take my key.")
+                            player['keys'].append('shop')
+                        elif guess.lower() in ['n','no','not yet']:
+                            print('Shopkeeper: Return when you have.')
+                        elif guess.lower() in ['y','yes','i have']:
+                            print('Shopkeeper: Then what is it?')
+                            guess=input('You: ')
+                            if plaintext in guess.lower():
+                            print('Shopkeeper: Correct!')
+                            print("Shopkeeper: Take my key.")
+                            player['keys'].append('shop')
                         else:
                             print("Shopkeeper: Wrong!")
-                        player['stage']+=1
             elif ('grab' in act or 'take' in act or 'pick up' in act):
                 if 'grab' in act:
                     w='grab'
