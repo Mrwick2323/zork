@@ -39,8 +39,11 @@ def getmaze(d):
         final = [row.copy() if i%2==0 else ['⬛']*(d*2-1) for i in range(d*2-1)]
         return final
     grid=makegrid(d)
-    cx = d-1
-    cy = 0
+    def printgrid(grid):
+        for i in grid:
+            print(' '.join(i))
+    cx=(cx:=random.randint(0,d*2-2))+cx%2
+    cy=(cy:=random.randint(0,d*2-2))+cy%2
     grid[cy][cx]="🟧"
     error = False
     path = []
@@ -74,8 +77,8 @@ def getmaze(d):
                 grid[cy][cx]='🟦'
             except:
                 break
-    final = [['⬜' if j in ["🟦","🟧"] else "⬛" for j in i] for i in grid]
-    return [['⬜' if j in ["🟦","🟧"] else "⬛" for j in i] for i in grid]
+    final=[['⬜' if j in ["🟦","🟧"] else "⬛" for j in i] for i in grid]
+    return final
 def printgrid(grid):
     for i in grid:
         print(' '.join(i))
@@ -223,6 +226,7 @@ def claim(killmap,m):
     gold*=2**m
     return (gold,key)
 def dungeonfight(killmap,player):
+    m=1
     print("\n-------------------\nYou were attacked by an ancient spirit!\n-------------------\n")
     try:
         mult=(2*(math.log(killmap[-1][0])-1/(2*killmap[-1][0]))+1.2+random.randint(-20,20)/10)//.1
@@ -251,13 +255,13 @@ def dungeonfight(killmap,player):
                 print('You see the ancient spirit flail in pain, eventually returning to nothing but a pile of ashes on the floor.\n')
                 if random.randint(0,1)==0:
                     print('You feel invigorated at the sight of the thing dying.')
-                return True
+                return (True,m)
             else:
                 print(f'The ancient spirit attacked you for {(dam:=enemy["damage"]+random.randint(-20,20)/10)}!\n')
                 player['health']-=dam
             if player['health']<=0:
                 print("The ancient spirit lashes out at you with all it's might. You succumb to the forces of the spirit. You died.")
-                return False
+                return (False,0)
         if dfi=='items':
             # speed potion, death potion, strength potion, money potion
             print('\n   '.join(player['backpack'].join(' ').split(' ')))
@@ -271,8 +275,9 @@ def dungeonfight(killmap,player):
             elif 'death' in dfit and 'death potion' in player['backpack']:
                 player['backpack'].pop(player['backpack'].index('death potion'))
                 print('You die.')
-                return False
+                return (False,0)
             elif 'money' in dfit and 'money potion' in player['backpack']:
+                m+=1
                 killmap[-1][-1]+=(gain:=random.randint(-30,30)/10)
                 print(f'You will gain {killmap[-1][0]*(gain-5)} to {killmap[-1][0]*(gain+5)} gold (if you make it out alive.)')
                 player['backpack'].pop(player['backpack'].index('speed potion'))
@@ -281,7 +286,8 @@ def dungeonfight(killmap,player):
                 player['backpack'].pop(player['backpack'].index('speed potion'))
             else:
                 print('That has no use here!')
-def dungeonsys():
+def dungeonsys(player):
+    m=1
     mapf=builtins.map
     dim=10
     killmap=[[0,0]]
@@ -320,8 +326,11 @@ def dungeonsys():
         if not flag:
             if fflag:
                 outcome=dungeonfight(killmap,player)
-                if not outcome:
+                if not outcome[0]:
                     return outcome
+                else:
+                    killmap[-1][-1]+=1
+                    m+=outcome[-1]
             surroundings=[[],[],[]]
             pastpos=pos.copy()
             def printsurroundings():
@@ -1001,7 +1010,7 @@ def run(deathtext):
         input("press enter to start  ")
         while player["health"]>0:
             if location=='dungeon':
-                outcome=dungeonsys()
+                outcome=dungeonsys(player)
                 if outcome==False:
                     run("You lost a fight in the dungeon. Return once you're more prepared")
                 else:
@@ -1281,6 +1290,6 @@ def run(deathtext):
             elif 'hhhhhhb' in act:
                 location = 'dev'
             h = False
-        run()
+        run('none')
     zork()
 run('none')
