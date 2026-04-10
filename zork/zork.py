@@ -121,7 +121,7 @@ def getstats(player):
     print("Name: "+player["name"])
     print('---------------------')
     print('Gold: '+str(player['money']))
-    print('Keys: '+ (', '.join(player['keays']) if len(player['keys'])>0 else 'none'))
+    print('Keys: '+ (', '.join(player['keys']) if len(player['keys'])>0 else 'none'))
     print("Health: "+str(player["health"]))
     print("Max Health: "+str(player["maxhealth"]))
     print("Strength: "+str(player["strength"]))
@@ -138,7 +138,9 @@ def move(map, location, direction):
     return map[location]["directions"][direction]
 def backpack(player):
     print("Backpack: ")
-    print('	\n'.join(player["backpack"]))
+    print('[',end='')
+    print(']	\n['.join(player["backpack"]),end='')
+    print(']')
 
 def pickup(map, location, item, player):
     backpack = player["backpack"]
@@ -605,15 +607,7 @@ def run(deathtext):
     import math
     import builtins
     mapf=builtins.map
-    plaintext=random.choice(words)
-    word=None
-    for i in plaintext:
-        if word is None:
-            word=cptl(cpt[i])
-        else:
-            letterrect=cptl(cpt[i])
-            for j in range(7):
-                word[j]+=letterrect[j] 
+    
     starttime = time.time()
     money = 1000
     ###############################
@@ -803,6 +797,13 @@ def run(deathtext):
     ###############################
 
     map = {
+    "dungeon":{
+        "description": "You are in a cold, darlk, wet room, you can barely see a few feet in front of your face. The door has closed behind you.",
+        "directions": {"east":"castle courtyard", "south":"dungeon entrance", "west":"forest clearing", "north":"forest wall"},
+        "items": [],
+        'gold':0,
+        "entities": ["guard"]
+    },
     "west castle entrance": {
         "description": "A large iron gate protects the castle entrance. There is a guard standing nearby.",
         "directions": {"east":"castle courtyard", "south":"dungeon entrance", "west":"forest clearing", "north":"forest wall"},
@@ -957,7 +958,15 @@ def run(deathtext):
     #		  Functions 		  #
     ###############################
     def zork():
-
+        plaintext=random.choice(words)
+        word=None
+        for i in plaintext:
+            if word is None:
+                word=cptl(cpt[i])
+            else:
+                letterrect=cptl(cpt[i])
+                for j in range(7):
+                    word[j]+=letterrect[j] 
 
 
         ###############################
@@ -991,6 +1000,18 @@ def run(deathtext):
         print()
         input("press enter to start  ")
         while player["health"]>0:
+            if location=='dungeon':
+                outcome=dungeonsys()
+                if outcome==False:
+                    run("You lost a fight in the dungeon. Return once you're more prepared")
+                else:
+                    player['money']+=outcome[0]
+                    try:
+                        temp=player['keys']
+                        
+                    except:
+
+
             tct=getct(starttime)
             tl='noneaction'
             condition=False
@@ -1022,6 +1043,15 @@ def run(deathtext):
                                 player['money']-=items['shop'][item]['cost']
                                 player['backpack'][player['backpack'].index('')]=item
                                 print(f'You have successfully purchased the {item}. Have a nice day!')
+                                if 'money' not in item:
+                                    l=True
+                                    lind=0
+                                    while l:
+                                        if map['shop']['objects'][lind][:4]==item[:4]:
+                                            del items['shop'][item]
+                                            del map['shop']['objects'][lind]
+                                            l=False
+                                        lind+=1
                             else:
                                 print('Your backpack is too full!')
                         else:
@@ -1165,9 +1195,9 @@ def run(deathtext):
                             print('Shopkeeper: Then what is it?')
                             guess=input('You: ')
                             if plaintext in guess.lower():
-                            print('Shopkeeper: Correct!')
-                            print("Shopkeeper: Take my key.")
-                            player['keys'].append('shop')
+                                print('Shopkeeper: Correct!')
+                                print("Shopkeeper: Take my key.")
+                                player['keys'].append('shop')
                         else:
                             print("Shopkeeper: Wrong!")
             elif ('grab' in act or 'take' in act or 'pick up' in act):
@@ -1186,13 +1216,14 @@ def run(deathtext):
                     print('is not here!')
             elif 'drop' in act:
                 act=act.split(' ')
-                item=act[act.index('drop')+1:]
+                item=act[act.index('drop')+1:][0]
                 if item in player['backpack']:
                     if item!='figure':
                         map[location]['items'].append(item)
                         player['backpack'].remove(item)
                         player['backpack'].append('')
                     else:
+                        player['backpack'].remove(item)
                         print('You drop the figure, and it shatters immediately upon hitting the ground, revealing a very old key.')
                         print('You pick up the key.')
                         player['keys'].append('dungeon')
@@ -1218,7 +1249,7 @@ def run(deathtext):
             elif ('west'  in act or 'left'  in act):  
                 tl='west'
             elif ('in' in act or 'enter' in act):
-                if location==('shop' or 'night shop' or 'north of the mansion' or 'magic tower'):
+                if location in ['shop' , 'night shop' , 'north of the mansion' , 'magic tower' , 'dungeon entrance']:
                     tl='in'
                 else:
                     print("you cant go in here!")
@@ -1228,7 +1259,7 @@ def run(deathtext):
                         location='shop'
                         print(f'You are now at the {location}!\n')
                         view(map,location)
-                    else:
+                    elif 'shop' in player['keys']:
                         location='night shop'
                         print(f'You are now at the {location}!\n')
                         view(map,location)
