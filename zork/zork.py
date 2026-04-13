@@ -281,8 +281,8 @@ def dungeonfight(killmap,player):
                 return (False,0)
             elif 'money' in dfit and 'money potion' in player['backpack']:
                 m+=1
-                killmap[-1][-1]+=(gain:=random.randint(-30,30)/10)
-                print(f'You will gain {killmap[-1][0]*(gain-5)} to {killmap[-1][0]*(gain+5)} gold (if you make it out alive.)')
+                killmap[-1][-1]+=(gain:=random.randint(-3,3))
+                print(f'You will gain {killmap[-1][0]*(gain+5)*2**m} to {killmap[-1][0]*(gain-5)*2**m} gold (if you make it out alive.)')
                 player['backpack'].pop(player['backpack'].index('speed potion'))
             elif 'strength' in dfit and 'strength potion' in player['backpack']:
                 player['weapon']['damage']*=2
@@ -292,7 +292,7 @@ def dungeonfight(killmap,player):
 def warpsys(pastlocations):
     print("You see a large room before you, the walls lined with strange entryways of some kind. As you look inside one, you see what seems to be outside of the lair.")
     while (act:=True) and (i:=1):
-        print(map[p[i-1]]['description'])
+        print(map[pastlocations[i-1]]['description'])
         act=input(f"Would you like to enter? (enter/next) {i/len(pastlocations)}")
         if 'enter' in act or 'in' in act or 'yes' in act or 'y' in act:
             location=pastlocations[i-1]
@@ -347,6 +347,7 @@ def dungeonsys(player):
                 else:
                     killmap[-1][-1]+=1
                     m+=outcome[-1]
+                fflag=False
             surroundings=[[],[],[]]
             pastpos=pos.copy()
             def printsurroundings():
@@ -394,6 +395,7 @@ def dungeonsys(player):
                 surroundings[1][1]='🟥'
                 print('\n'.join(list(mapf(lambda x: ''.join(x), surroundings))))
             printsurroundings()
+            print('\n'.join(list(mapf(lambda x: ''.join(x), dungeon))))
             dungeondirection=input('Which way would you like to go?')
             if ('north' in dungeondirection or dungeondirection in ['n','go n','up','go up','u']) and pos[0]>0 and dungeon[pos[0]-1][pos[1]]!='⬛':
                     pos[0]-=1
@@ -414,9 +416,9 @@ def dungeonsys(player):
             while tex not in ['exit','continue','stay']:
                 tex=input("You've reached the end! What would you like to do? (exit/continue/stay) ")
             if tex=='exit':
-                return claim(killmap)
+                return claim(killmap,m)
             if tex=='continue':
-                killmap.append([killmap[-1][0]+1,0])
+                killmap.append([killmap[-1][0]+1])
                 rflag=True
             flag=False
 def run(deathtext):
@@ -956,8 +958,8 @@ def run(deathtext):
         "entities": []
         },
     "boss room": {
-        "description": "a damp cave light by torches on the walls. theres a hideos monster with 3 scaly heads, it turns to face you, and you make make out the countless scars on its body.",
-        "directions": {"north":"wall", "east":"wall", "south":"wall", "west":"den of the giant lizard", "out":"den of the giant lizard", "in":"warp system"},
+        "description": "a damp cave light by torches on the walls. theres a hideous monster with 3 scaly heads, it turns to face you, and you make make out the countless scars on its body.",
+        "directions": {"north":"wall", "east":"wall", "south":"wall", "west":"den of the giant lizard", "out":"den of the giant lizard", "in":"warp room"},
         "gold": 15,
         "entities": ["hydra",]
         },
@@ -1042,8 +1044,9 @@ def run(deathtext):
                     else:
                         player['dungeon keys']=outcome[1]
                     player['diddungeon']=True
+                location='dungeon entrance'
             elif location=='warp room':
-                pass
+                warpsys(past_locations)
             tct=getct(starttime)
             tl='noneaction'
             condition=False
@@ -1296,7 +1299,7 @@ def run(deathtext):
                 elif location=='dungeon entrance' and 'dungeon' in player['keys']:
                     tl='in'
                 elif location=='boss room' and player['diddungeon']:
-                    pass
+                    tl='in'
                 else:
                     print("you cant go in here yet!")
             if tl!='noneaction':
