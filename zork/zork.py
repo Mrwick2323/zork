@@ -249,7 +249,10 @@ def dungeonfight(killmap,player):
         if dfi in ['flee','escape','run']:
             print('You cannot escape from dungeon encounters')
         if dfi in ['fight','attack']:
-            print(f'You attacked the ancient spirit for {(dam:=player["weapon"]["damage"]+random.randint(-20,20)/10)}!\n')
+            if player['weapon']['name']=='ancient staff':
+                print(f'You attacked the ancient spirit for {(dam:=20+random.randint(-20,20)/10)}!\n')
+            else:
+                print(f'You attacked the ancient spirit for {(dam:=player["weapon"]["damage"]+random.randint(-20,20)/10)}!\n')
             enemy['health']-=dam
             if enemy['health']<=0:
                 print('You see the ancient spirit flail in pain, eventually returning to nothing but a pile of ashes on the floor.\n')
@@ -286,6 +289,13 @@ def dungeonfight(killmap,player):
                 player['backpack'].pop(player['backpack'].index('speed potion'))
             else:
                 print('That has no use here!')
+def warpsys(p):
+    print("You see a large room before you, the walls lined with strange entryways of some kind. As you look inside one, you see what seems to be outside of the lair.")
+    while (act:=True) and (i:=1):
+        print(map[p[i-1]]['description'])
+        act=input(f"Would you like to enter? (enter/next) {i/len(p)}")
+        if 'enter' in act or 'in' in act or 'yes' in act or 'y' in act:
+            
 def dungeonsys(player):
     m=1
     mapf=builtins.map
@@ -806,6 +816,13 @@ def run(deathtext):
     ###############################
 
     map = {
+    "warp room":{
+        "description": "You are in a cold, darlk, wet room, you can barely see a few feet in front of your face. The door has closed behind you.",
+        "directions": {"east":"wall", "south":"wall", "west":"wall", "north":"wall","out":'boss room'},
+        "items": [],
+        'gold':60,
+        "entities": []
+    },
     "dungeon":{
         "description": "You are in a cold, darlk, wet room, you can barely see a few feet in front of your face. The door has closed behind you.",
         "directions": {"east":"castle courtyard", "south":"dungeon entrance", "west":"forest clearing", "north":"forest wall"},
@@ -933,8 +950,8 @@ def run(deathtext):
         "entities": []
         },
     "boss room": {
-        "description": "a damp cave light by torches on the walls. theres a hideos monster with 3 scaly heads.",
-        "directions": {"north":"wall", "east":"wall", "south":"wall", "west":"den of the giant lizard", "out":"den of the giant lizard"},
+        "description": "a damp cave light by torches on the walls. theres a hideos monster with 3 scaly heads, it turns to face you, and you make make out the countless scars on its body.",
+        "directions": {"north":"wall", "east":"wall", "south":"wall", "west":"den of the giant lizard", "out":"den of the giant lizard", "in":"warp system"},
         "gold": 15,
         "entities": ["hydra",]
         },
@@ -1018,6 +1035,9 @@ def run(deathtext):
                         player['dungeon keys']+=outcome[1]
                     else:
                         player['dungeon keys']=outcome[1]
+                    player['diddungeon']=True
+            elif location=='warp room':
+                pass
             tct=getct(starttime)
             tl='noneaction'
             condition=False
@@ -1261,14 +1281,18 @@ def run(deathtext):
             elif ('west'  in act or 'left'  in act):  
                 tl='west'
             elif ('in' in act or 'enter' in act):
-                if location in ['north of the mansion' , 'magic tower']:
+                if location in ['magic tower']:
+                    tl='in'
+                elif location=='north of the mansion' and player['diddungeon']:
                     tl='in'
                 elif location in ['shop','night shop'] and 'shop' in player['keys']:
                     tl='in'
                 elif location=='dungeon entrance' and 'dungeon' in player['keys']:
                     tl='in'
+                elif location=='boss room' and player['diddungeon']:
+                    pass
                 else:
-                    print("you cant go in here!")
+                    print("you cant go in here yet!")
             if tl!='noneaction':
                 if location=='castle courtyard' and tl=='north':
                     if tct[0] in ['8','9','10','11'] and tct[-1]=='A.M.' or tct[0] in ['12','01','02','03','04','05'] and tct[-1]=='P.M.':
