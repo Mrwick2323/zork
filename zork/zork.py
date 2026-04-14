@@ -228,7 +228,7 @@ def derivative(f,x):
 def claim(killmap,m):
     gold=0
     for i in killmap:
-        gold+=i[1]*(i[1]+(w if (w:=random.randint(5))+i[1]!=0 else 0))
+        gold+=i[1]*(i[1]+(w if (w:=random.randint(0,5))+i[1]!=0 else 0))
     gold*=2**m
     return gold
 def dungeonfight(killmap,player):
@@ -671,13 +671,14 @@ def run(deathtext):
     last = ["Harkjade","Grangrown","Jadedore","Harkde","Grangjade","Brownden","Brownspell","Jashot","Harkrown","Grangrown","Dumblebrown","Harkrown","Rongspell"]
     #player def
     player = {
+    'secrets':0,
     'armor reward':False,
     "stage":0,
     "name": f"{random.choice(first)} {random.choice(last)}",
     "keys":[],
-    "speed":50,
+    "speed":5,
     "health":10,
-    "strength":100,
+    "strength":0,
     "resilience":0,
     "maxhealth":10,
     "backpack" : ['','','','','','','','','',''],
@@ -1062,11 +1063,6 @@ def run(deathtext):
         while player["health"]>0:
             if location=='dungeon':
                 outcome=dungeonsys(player)
-                #YOU NEED TO FIX THIS #########################################################################################
-                ####################
-                #################
-                ####################33
-                #################33
                 if outcome is False:
                     run("You lost a fight in the dungeon. Return once you're more prepared.")
                 else:
@@ -1077,10 +1073,10 @@ def run(deathtext):
                 location=warpsys(past_locations,map)
             elif location=='mansion interior':
                 if not player['armor reward']:
-                    input('Lord: Hello! Have you come for a reward?\n')
+                    print('Lord: Hello! Have you come for a reward?\n')
                     input('You: Yes.\n')
                     print('Lord: Let me see your voucher.\n')
-                    print("\033[3mYou hand the lord your voucher.\033[0m\n")
+                    
                     i=0
                     g=False
                     dvp=0
@@ -1093,24 +1089,26 @@ def run(deathtext):
                             g=3
                         i+=1
                     if g!=3:
+                        print("\033[3mYou hand the lord your voucher.\033[0m\n")
                         print(f'Lord: Would you like armor, or gold?\n')
-                        choice=input('You: ')
-                        print('\n')
-                        print()
+                        choice=''
+                        while not ('armor' in choice or 'gold' in choice):
+                            choice=input('You: ')
+                            print('\n')
                         if 'armor' in choice:
                             print('Lord: Okay then. It is yours.')
                             player['backpack'][player['backpack'].index('')]='sturdy armor'
                         elif 'gold' in choice:
-                            print(f'King: Okay. Here is your pay.\n')
+                            print(f'Lord: Okay. Here is your pay.\n')
                             print(f"\033[3mThe lord hands you {dvp} gold\033[0m")
                             player['money']+=dvp
                             dvp=0
                     else:
-                        print(f'Lord: Okay. Here is your pay.')
-                        print(f"\033[3mThe lord hands you {dvp}\033[0m")
-                        player['money']+=dvp
-                        dvp=0
+                        input(f"You: I don't have one.\n")
+                        print(f"Lord: Then why are you here? Go get one.")
                     location='north of the mansion'
+            elif location=='shop' and player['secrets']>1:
+                fight(map,'shop',player,'shopkeeper')
             tct=getct(starttime)
             tl='noneaction'
             condition=False
