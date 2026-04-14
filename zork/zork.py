@@ -674,7 +674,7 @@ def run(deathtext):
     "stage":0,
     "name": f"{random.choice(first)} {random.choice(last)}",
     "keys":[],
-    "speed":5,
+    "speed":50,
     "health":10,
     "strength":1000,
     "resilience":0,
@@ -1061,6 +1061,12 @@ def run(deathtext):
         while player["health"]>0:
             if location=='dungeon':
                 outcome=dungeonsys(player)
+                print(outcome)
+                #YOU NEED TO FIX THIS #########################################################################################
+                ####################
+                #################
+                ####################33
+                #################33
                 if not outcome:
                     run("You lost a fight in the dungeon. Return once you're more prepared.")
                 else:
@@ -1073,7 +1079,31 @@ def run(deathtext):
                 if not player['armor reward']:
                     player['armor reward']=True
                     print('King: Hello! Have you come for a reward?\n')
-                    print('You: Yes.')
+                    print('You: Yes.\n')
+                    print('King: Let me see your voucher.\n')
+                    print("\033[3mYou hand the king your voucher.\033[0m")
+                    i=0
+                    g=False
+                    dvp=0
+                    while not g:
+                        if 'dungeon voucher' in player['backpack'][i]:
+                            dvp=float(player['backpack'][i].split(' ')[-1])
+                            player['backpack'][i]=''
+                            g=True
+                        if i==len(player['backpack']-1):
+                            g=3
+                        i+=1
+                    if g!=3:
+                        print(f'King: Would you like armor, or gold?\n')
+                        choice=input('You: ')
+                        if 'armor' in choice:
+                            print('King: Okay then. It is yours.')
+                            player['backpack'][player[backpack.index('')]]='sturdy armor'
+                        elif 'gold' in choice:
+                            print(f'King: Okay. Here is your pay.')
+                            print(f"\033[3mThe king hands you {dvp}\033[0m")
+                            player['money']+=dvp
+                            dvp=0
             tct=getct(starttime)
             tl='noneaction'
             condition=False
