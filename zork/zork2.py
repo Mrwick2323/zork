@@ -419,8 +419,6 @@ def dungeonsys(player):
                 surroundings = [['⬜' if j in ["🟥","⬜"] else j for j in i] for i in surroundings]
                 surroundings[1][1]='🟥'
                 print('\n'.join(list(mapf(lambda x: ''.join(x), surroundings))))
-                print('\n')
-                print('\n'.join(list(mapf(lambda x: ''.join(x), dungeon))))
             printsurroundings()
             dungeondirection=input('Which way would you like to go? ')
             if ('north' in dungeondirection or dungeondirection in ['n','go n','up','go up','u']) and pos[0]>0 and dungeon[pos[0]-1][pos[1]]!='⬛':
